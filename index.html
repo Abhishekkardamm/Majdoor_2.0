@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/css/Style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    
+    <div id="Stories" class="box-container">
+        <div class="box">
+            <div class="overlay"></div>
+        </div>
+        <div class="box">
+            <div class="overlay"></div>
+        </div>
+        <div class="box">
+            <div class="overlay"></div>
+        </div>
+        <div class="box">
+            <div class="overlay"></div>
+        </div>
+        <div class="box">
+            <div class="overlay"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-wrap">
+            <h2 class="mob">Photographer Booking Form</h2>
+            <h3 class="mob">Mobile Version</h3>
+            <h5 class="mob">View on a desktop for the full experience</h5>
+            <form action="">
+              <div class="location">
+                <label for="location">LOCATION</label>
+                <br>
+                <input type="text" name="location" placeholder="Edinburgh, UK">
+                <br>
+              </div>
+              
+              <div class="dates">
+                <div class="start">
+                  <label for="arrival">START</label>
+                  <br>
+                  <input name="arrival" type="text" onfocus="(this.type='date')" onblur="(this.type='text')" placeholder="10/03/2016">
+                </div>
+                
+                <div class="end">
+                  <label for="departure">END</label>
+                  <br>
+                  <input name="departure" type="text" onfocus="(this.type='date')" onblur="(this.type='text')" placeholder="05/11/2016">
+                </div>
+              </div>
+              
+              <button type="button" class="btn">SEARCH</button>
+              
+              <div class="linkbox">
+                <div class="links">
+                  <div class="origin">
+                    <p>Photographer 1</p>
+                  </div>
+                  <div class="origin">
+                    <p>Photographer 2</p>
+                  </div>
+                  <div class="origin">
+                    <p>Photographer 3</p>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          
+    </div>
+
+    <script src="/js/js.js"></script>
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        let cw = (canvas.width = window.innerWidth),
+            cx = cw / 2;
+        let ch = (canvas.height = window.innerHeight),
+            cy = ch / 2;
+
+        const rad = Math.PI / 180;
+
+        let rid = null; // request animation frame ID
+        // array used to generate the vertical waves
+        let ry = [100];
+        for (let i = 1; i < 16; i++) {
+            ry.push(ry[i - 1] / 2);
+        }
+
+        let waves = [];
+        ///////////////////////
+        let amplitude = ch / 5;
+        let step = cw / 10;
+        //////////////////////
+
+        class Particle {
+            constructor(x, offset) {
+                this.pos = { x };
+                this.offset = offset;
+                this.f = Math.random();
+                this.angle = Math.random() * Math.PI; // used for y
+                this.pos.y = this.offset + this.f * amplitude * Math.sin(this.angle);
+            }
+
+            update() {
+                if (this.angle < 2 * Math.PI) {
+                    this.angle += 0.01;
+                } else {
+                    this.angle = 0;
+                }
+                this.pos.y = this.offset + this.f * amplitude * Math.sin(this.angle);
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.fillRect(this.pos.x, this.pos.y, 2, 2);
+            }
+        }
+
+        class Wave {
+            // horizontal waves
+            constructor(offset) {
+                this.particles = [];
+                this.offset = offset;
+
+                for (let x = -step; x <= cw + step; x += step) {
+                    this.particles.push(new Particle(x, this.offset));
+                }
+            }
+
+            update() {
+                this.particles.map(p => p.update());
+            }
+
+            connect() {
+                let points = this.particles;
+                //ctx.fillStyle = "black";
+
+                ctx.beginPath();
+                ctx.moveTo(points[0].pos.x, points[0].pos.y);
+                for (var i = 1; i < points.length - 2; i++) {
+                    var cp = {};
+                    cp.x = (points[i].pos.x + points[i + 1].pos.x) / 2;
+                    cp.y = (points[i].pos.y + points[i + 1].pos.y) / 2;
+                    ctx.quadraticCurveTo(points[i].pos.x, points[i].pos.y, cp.x, cp.y);
+                }
+                ctx.quadraticCurveTo(
+                    points[i].pos.x,
+                    points[i].pos.y,
+                    points[i + 1].pos.x,
+                    points[i + 1].pos.y
+                );
+                ctx.lineTo(points[points.length - 1].pos.x, ch + step);
+                ctx.lineTo(points[0].pos.x, ch + step);
+                ctx.closePath();
+
+                ctx.fill();
+            }
+
+            draw(moment, frames) {
+                this.particles.map(p => {
+                    //p.update(moment, frames);
+                    //p.draw();
+                });
+                this.connect();
+            }
+        }
+
+        for (let i = 0; i < ch; i += ch / 8) {
+            waves.push(new Wave(i));
+        }
+
+        function Frame() {
+            rid = window.requestAnimationFrame(Frame);
+            ctx.clearRect(0, 0, cw, ch);
+            ctx.globalCompositeOperation = "xor";
+
+            //Waves
+            waves.map(wave => wave.update());
+            waves.map(wave => wave.draw());
+
+            // Vertical lines
+            for (let i = 0; i < ry.length; i++) {
+                ry[i] *= 1.01;
+            }
+
+            for (let i = 1; i < ry.length; i++) {
+                if (ry[i] >= cx) {
+                    ry.splice(i - 1, 1);
+                    ry.splice(i, 1);
+                    ry.push(Number(ry[ry.length - 1] / 2));
+                    ry.push(Number(ry[ry.length - 1] / 2));
+                }
+            }
+            ry.map(e => {
+                ctx.fillRect(cx, 0, cx * e / 100, ch);
+                ctx.fillRect(cx, 0, -cx * e / 100, ch);
+            });
+        }
+
+        function Init() {
+            if (rid) {
+                window.cancelAnimationFrame(rid);
+                rid = null;
+            }
+
+            (cw = canvas.width = window.innerWidth), (cx = cw / 2);
+            (ch = canvas.height = window.innerHeight), (cy = ch / 2);
+
+            amplitude = ch / 5;
+            step = cw / 10;
+
+            waves.length = 0;
+            for (let i = 0; i < ch; i += ch / 8) {
+                waves.push(new Wave(i));
+            }
+            Frame();
+        }
+
+        setTimeout(function () {
+            Init();
+            addEventListener("resize", Init, false);
+        }, 15);
+
+    </script>
+</body>
+
+</html>
